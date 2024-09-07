@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+# first create cluster then run this command
+# how to create cluster ? 
+# kind create cluster --config clusters.yml
+# kubectl apply -f deployment.yml
+# kubectl get deployment
+# kubectl scale deployment/nginx-deployment --replicas=5
+
+# kubectl get pods
+# kubectl get rs (replica set)
+# kubectl get deployment
+# kubectl get svc
+
+# now if u delete a pod then it will be recreated by replica set , so it will be same as before
+# kubectl delete pod <pod-name>
+# kubectl get pods
+# then u will see less pods , but after some time it will be same as before
+# kubectl get pods again , and it will be same as u mentioned in deployment.yml file or if u changed it by kubectl scale command 
+# you can delete deploymnent  by kubectl delete deployment/nginx-deployment and now it will not be recreated by replica set
+# kubectl get pods will have 0 pods now 
+# kubectl get rs will have 0 replica set now
+# kubectl get deployment will have 0 deployment now
+# now u can delete cluster by  "kind delete cluster --name kind"
+
+# DEPLOYMENT VS REPLICASET
+# spec:
+# containers:
+# - name: nginx
+#   image: nginx:latest
+#   ports:
+#   - containerPort: 80
+# now in above file we replace  image: nginx:latest to  image: nginx:latest-vesrion2 then dpeloyment
+#  will create new replica set and new pods with new image
+# but if we change image: nginx:latest to  image: nginx:latest-vesrion2 in replicaset file then 
+# it will not create new replica set and new pods with new image
+# means we get auto update in deployment but not in replica set
+# so we should use deployment instead of replica set if we are updating image or any other thing in pod 
+
+# basically what deployment does is it creates a new replicas set and try to run the new iamge there and when it runs 
+# correctly then it deletes the old replica set and pods and then it will be same as before but with new image
+# it slowly moves the traffic from old pods to new pods and so our service will not be down
+
+# but replica set will not do this , it will not create new replica set and new pods with new image
+# so we should use deployment instead of replica set if we are updating image or any other thing in pod
+
+# baki creating a replica set is same as creating a deployment , just change kind: Deployment to kind: ReplicaSet
+# apiVersion: apps/v1
+# kind: Deployment => here we have to chane it to ReplicaSet
+# metadata:
+#   name: nginx-deployment
+# spec:
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: nginx
+#   template:
+#     metadata:
+#       labels:
+#         app: nginx
+#     spec:
+#       containers:
+#       - name: nginx
+#         image: nginx:latest
+#         ports:
+#         - containerPort: 80
+
+# now if u start deplyment-2.yml by kubectl apply -f deployment-2.yml 
+# that file has image: postgres:latest instead of image: nginx:latest
+# but the name of deployment is same as before so it will create new replica set and new pods with new image
+# so now we have 2 replica set and 2 pods running , one with image: nginx:latest and one with image: postgres:latest
+# and now if u contisly do get pods , then look at the "AGE" , then u will see dhere dhere postgres is starting 
+# here we are updating our pods from nginx to postgres without any downtime , so our service will not be down
+# and after some time all pods will be running with image: postgres:latest and then it will delete the old replica set and pods
+# look at yhe AGE , then u will see that the old pods are deleted and now we have only one replica set and one pod running
+
+# so basically what i did from start is 
+
+# i created a cluster by "kind create cluster --config clusters.yml"
+# and now check context by "kubectl config get-contexts"
+# and use context by "kubectl config use-context kind-kind"
+# then i created a deployment by "kubectl apply -f deployment.yml"
+# then i scaled the deployment by "kubectl scale deployment/nginx-deployment --replicas=5"
+# and continously checked the pods , replica set and deployment by "kubectl get pods" , "kubectl get rs" , "kubectl get deployment"
+# then i created a new deployment by "kubectl apply -f deployment-2.yml"
+# then u will see logs of postgres instead of nginx
+# and continously checked the pods , replica set and deployment by "kubectl get pods" , "kubectl get rs" , "kubectl get deployment"
+# then i deleted the old deployment by "kubectl delete deployment/nginx-deployment"
+# then i deleted the cluster by "kind delete cluster --name kind"
+# get logs of a pod by "kubectl logs <pod-name>"
+# so this is the whole process of creating a cluster , deployment , scaling deployment , creating new deployment ,
+#  deleting old deployment and deleting cluster
+
+
+# look at the image copy 2 , where u will see the 2 rs , the first had nginx image and the second had postgres image
+# but now due to upadte all the nginx image got deleted and now we have only one rs and one pod with postgres image
+# so this is how we can update our pods without any downtime by using deployment instead of replica set
+
+# https://projects.100xdevs.com/tracks/kubernetes-part-2/Kubernetes-Part-2-3 have end to end explanation of this , just the last code
+# of deployment-2.yml is wrong , it should be image: postgres:latest instead of image: nginx2:latest

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-volume-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-volume-app
+  template:
+    metadata:
+      labels:
+        app: shared-volume-app
+    spec:
+      containers:
+      - name: writer
+        image: busybox
+        command: ["/bin/sh", "-c", "echo 'Hello from Writer Pod' > /data/hello.txt; sleep 3600"]
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data
+      - name: reader
+        image: busybox
+        command: ["/bin/sh", "-c", "cat /data/hello.txt; sleep 3600"]
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data
+      volumes:
+      - name: shared-data
+        emptyDir: {}
+
+# create a cluster first by :  kind create cluster --name local
+# then add a deployment by  : kubectl apply -f volumes/deployment.yml
+# this will cerate a deployment with 2 containers, one writer and one reader / 2 pods (image.png)
+# to check the pods : kubectl get pods
+# now here we have volumes shared between the pods, so the writer pod writes to the volume and the reader pod reads from the volume
+# and volume mounts means , the volume is mounted to the path /data in both the pods 
+# means line 28 will just create a voume with name shared-data and emptyDir means it will be empty
+# but the real thing is line 25, 19 where we tell the container to mount the volume to the path /data
+# so the writer pod writes to /data/hello.txt and the reader pod reads from /data/hello.txt and prints it
+
+# now we can check logs of the reader pod by : kubectl logs -f <podname>  -c=reader
+# now we can check logs of the writer pod by : kubectl logs -f <podname>  -c=writer
+
+# OR we can exed into pod and check the file by : kubectl exec -it -c=reader <pod-name> sh
+#  and then :  cat /data/hello.txt 

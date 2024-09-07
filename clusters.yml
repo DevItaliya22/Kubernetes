@@ -1,0 +1,10 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+
+# cheat sheet : https://www.scaleway.com/en/docs/static/14e9ce6109d2a7120be3a356393d5612/3eed2/scaleway-kubernetes-cheatsheet.webp 
+
+#  kind create cluster --config clusters.yml run this 

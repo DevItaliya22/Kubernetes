@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cpu-app
+  template:
+    metadata:
+      labels:
+        app: cpu-app
+    spec:
+      containers:
+      - name: cpu-app
+        image: 100xdevs/week-28:latest
+        ports:
+        - containerPort: 3000
+
+  # this basically creates a deployment of name cpu-deployment with 2 replicas
+  # and the selector is app=cpu-app , means the pods created by this deployment will have label app=cpu-app
+  # and the template is the pod template , means the pods created by this deployment will have the below configuration
+  # and the container is of name cpu-app and the image is 100xdevs/week-28:latest and the container is listening on port 3000
+  # now this image is a simple nodejs app which is listening on port 3000 but the cpu utilization is very high
+  # means it has 10000000 iterations of loop , so the cpu utilization is very high
+  # and so we the metrics formed by the hpa will be able to scale the pods
+  # now what is metrics , metrics is the data on which the hpa will scale the pods
+  # and that metrics is not what we define here , taht is defined in the hpa.yml file
+  # /and how to get metrics , means how would kubernetes know the cpu utilization of the pods , so for that we need to install metrics server
+  # so for installig metrics server , `kubectl apply -f components.yaml` ,
+  #  and then `kubectl get pods -n kube-system` , to check the metrics server
+  # now locally this only wokrk if the cluster is deployed on vultr
+
+  

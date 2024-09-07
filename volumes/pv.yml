@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  nfs:
+    path: /exports
+    server: 52.66.197.168
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs
+
+# this wont work locally, as we dont have a nfs server running, but this is how we can create a pv and pvc 
+# 52.66.197.168 is the ip of the nfs server , and /exports is the path on the nfs server
+# this ip point to the nfs server where the volume is stored on AWS 
+# and now a developer can use this pv by making a pod/deployment and pointing to this pv
+
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: mongo-pod
+# spec:
+#   containers:
+#   - name: mongo
+#     image: mongo:4.4
+#     command: ["mongod", "--bind_ip_all"]
+#     ports:
+#     - containerPort: 27017
+#     volumeMounts:
+#     - mountPath: "/data/db"
+#       name: nfs-volume
+#   volumes:
+#   - name: nfs-volume
+#     persistentVolumeClaim:
+#       claimName: nfs-pvc
+
+# this is how we can use the pv in a pod, we can mount the volume to the path /data/db in the pod
+# and let say if we have a mongo pod, we can use this pv to store the data of the mongo pod
+
+# and now if we dont have storage of 10gb free on PV , then continer wont even start , means it will be in pending state
+# look at the line 24 , where we asked for 10gb storage, so we need to have 10gb free on the PV to start the container
+# and if we dont have 10gb free, then the container will be in pending state
+
+# This is how we staically create a pv and pvc, but we can also use dynamic provisioning, where we dont have to create pv and pvc
+# manually, k8s will do it for us, we just have to ask for the storage and k8s will create the pv and pvc for us
+# and we can use the pv and pvc in our pods
+
+
+# NOW LETS SEE HOW TO USE DYNAMIC PROVISIONING
+

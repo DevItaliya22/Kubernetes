@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cpu-service
+spec:
+  selector:
+    app: cpu-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
+
+  # here we can see that cpu-app is the selector for the service , means the service will route the traffic to the pods with label app=cpu-app
+  # and this "cpu-app" are created by replica set , and replica set is created by deployment.yml file above this ,
+  #  so the service will route the traffic to the pods created by deployment
+  # and the service is of type LoadBalancer , means it will create a load balancer on the cloud provider and route the traffic to the pods

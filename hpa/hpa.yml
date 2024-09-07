@@ -1,0 +1,57 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cpu-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cpu-deployment
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  # - type: Resource
+  #   resource:
+  #     name: memory
+  #     target:
+  #       type: Utilization
+  #       averageUtilization: 50
+
+# first cretae a cluster on vultr of 2 nodes and copy the kubeconfig file to the local machine
+# then create the deployment and service from this folder as above file 
+# now the deployment is of name cpu-deployment and service is of name cpu-service
+# `kubectl apply -f hpa.yml` to create the hpa , where every line is explained below
+# apiVersion: autoscaling/v2 - version of the api
+# kind: HorizontalPodAutoscaler - kind of the resource
+# metadata: - metadata of the resource
+#   name: cpu-hpa - name of the hpa
+# spec: - specification of the hpa
+# scaleTargetRef: - reference to the deployment to scale , means we put the name of the deployment to scale , here cpu-deployment
+# means when u look at depoyment.yml file , the name of the deployment is cpu-deployment and on some basis we want to scale that
+# minReplicas: 2 - minimum number of replicas to keep
+# maxReplicas: 5 - maximum number of replicas to keep
+# metrics: - metrics to scale on
+# - type: Resource - type of the metric
+#   resource: - resource to scale on
+#     name: cpu - name of the resource
+#     target: - target of the resource
+#       type: Utilization - type of the target
+#       averageUtilization: 50 - average utilization of the target
+# means when the cpu utilization of the pods in the deployment is more than 50% , then the number of replicas will be increased
+# and when the cpu utilization of the pods in the deployment is less than 50% , then the number of replicas will be decreased
+# now if u want to add memort consumption as well , then add another metrics block as below
+# metrics:
+# - type: Resource
+#   resource:
+#     name: memory
+#     target:
+#       type: Utilization
+#       averageUtilization: 50
+# to check the hpa , `kubectl get hpa` , to check the status of the hpa , `kubectl describe hpa cpu-hpa`
+# to check the pods , `kubectl get pods` , to check the deployment , `kubectl get deployment` , to check the service , `kubectl get service`
