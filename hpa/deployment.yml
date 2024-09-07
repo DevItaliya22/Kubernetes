@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: cpu-deployment
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app: cpu-app
@@ -17,6 +17,18 @@ spec:
         image: 100xdevs/week-28:latest
         ports:
         - containerPort: 3000
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "900m"
+
+            # here resources is the resources of the container , means the resources of the pod
+            # requests is the minimum resources required by the container
+            # limits is the maximum resources that can be used by the container
+            # cpu: "100m" - means the container will use 100 millicpu of cpu (means 10%)
+            # cpu: "900m" - means the container will use 1000 millicpu of cpu (means 90%)
+            # so the container will use minimum 100 millicpu of cpu and maximum 1000 millicpu of cpu
 
   # this basically creates a deployment of name cpu-deployment with 2 replicas
   # and the selector is app=cpu-app , means the pods created by this deployment will have label app=cpu-app
@@ -32,4 +44,46 @@ spec:
   #  and then `kubectl get pods -n kube-system` , to check the metrics server
   # now locally this only wokrk if the cluster is deployed on vultr
 
-  
+  # but now when we use components.yaml file , it will install the metrics server on the cluster , but there will be some errors
+  # so it will say failed to get metrics , so its because the metrics server is not able to get the metrics of the pods
+  # so for that we need to install the metrics server with some configurations , so for that we need to install the metrics server with the below command
+  #      command:
+  # - /metrics-server
+  # - --v=2
+  # - --kubelet-preferred-address-types=InternalIP  
+
+  # so use this file as it has the above things already added 
+  # https://github.com/100xdevs-cohort-2/week-28-manifests/blob/main/components.yml
+  # or on component2.yml file in this folder
+
+# now if we apply rhis new file , then the error will be gone and the hpa will be able to get the metrics of the pods
+# now we have 
+# cluster of 2 nodes
+# deployment.yml - to create the deployment of the nodejs app with high cpu utilization (10000000 iterations of loop)
+# service.yml - to create the service
+# hpa.yml - to create the hpa
+# components.yml - to install the metrics server(but will give error)
+# components2.yml - to install the metrics server with the configurations ( no errors )
+
+# now how many pods will be there ? 
+# that depends on auto-scale 
+# in this deployment we have 2 replicas , and the hpa is set to scale the pods on the basis of cpu utilization
+# so when the cpu utilization is more than 50% , then the number of replicas will be increased
+# and when the cpu utilization is less than 50% , then the number of replicas will be decreased
+# and this "2" will be over write by the hpa , means the hpa will scale the pods on the basis of the cpu utilization
+# so main thing is the hpa , which will scale the pods on the basis of the cpu utilization
+
+
+# now what is cluster autoscaler ?
+# cluster autoscaler is used to scale the nodes of the cluster on the basis of the pods
+# means initially we have 2 nodes , and the hpa will scale the pods on the basis of the cpu utilization
+# but on vultr , if we create a node-pool of 2-6 nodes , then the cluster autoscaler will scale the nodes on the basis of the pods
+# means when the pods are more than the nodes , then the cluster autoscaler will add the nodes
+# and when the pods are less than the nodes , then the cluster autoscaler will remove the nodes
+
+#  now if u do load testing using
+# npm i -g loadtest
+# loadtest -c 10 --rps 200 http://65.20.89.70 
+# then the cpu utilization will increase and the pods will be scaled
+# https://projects.100xdevs.com/tracks/kubernetes-3/Kubernetes-Part-3--Scaling--8
+
